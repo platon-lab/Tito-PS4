@@ -29,7 +29,7 @@ jobs:
         run: |
           docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
             openorbisofficial/toolchain:latest \
-            bash -c 'for p in libc.prx libSceFios2.prx; do f=$(find /lib/OpenOrbisSDK -name "$p" | head -n1); echo "found $p: $f"; cp "$f" /workspace/; done'
+            bash -c 'for p in libc.prx libSceFios2.prx right.sprx; do f=$(find /lib/OpenOrbisSDK -name "$p" | head -n1); if [ -n "$f" ]; then echo "found $p: $f"; cp "$f" /workspace/; else echo "not found: $p"; fi; done'
           python3 make_pkg_files.py
           ls -la pkg pkg/sce_sys pkg/sce_module
 

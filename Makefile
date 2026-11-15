@@ -18,7 +18,7 @@ tito.elf: $(OBJS)
 
 eboot.bin: tito.elf
 	$(if $(EBOOT_TOOL),,$(error create-eboot не найден в $(TC)))
-	$(EBOOT_TOOL) -in tito.elf -out eboot.bin -ptype fake -paid 0x3800000000000011
+	sh make_eboot.sh $(EBOOT_TOOL)
 	test -s eboot.bin
 
 pkg: eboot.bin

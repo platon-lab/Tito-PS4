@@ -1,5 +1,5 @@
 TC ?= $(OO_PS4_TOOLCHAIN)
-CREATE_FSELF := $(or $(shell command -v create-fself 2>/dev/null),$(TC)/bin/linux/create-fself)
+EBOOT_TOOL := $(or $(shell command -v create-eboot 2>/dev/null),$(shell find $(TC) -name create-eboot -type f 2>/dev/null | head -n 1))
 PKGTOOL := $(or $(shell command -v PkgTool.Core 2>/dev/null),$(TC)/bin/linux/PkgTool.Core)
 CC := clang
 LD := ld.lld
@@ -17,7 +17,8 @@ tito.elf: $(OBJS)
 	$(LD) $(LDFLAGS) $(TC)/lib/crt1.o $(OBJS) $(LIBS) -o $@
 
 eboot.bin: tito.elf
-	$(CREATE_FSELF) -in tito.elf -out tito.oelf -eboot eboot.bin -paid 0x3800000000000011
+	$(if $(EBOOT_TOOL),,$(error create-eboot не найден в $(TC)))
+	$(EBOOT_TOOL) -in tito.elf -out eboot.bin
 
 pkg: eboot.bin
 	python3 make_pkg_files.py

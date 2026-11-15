@@ -29,6 +29,17 @@ jobs:
           chmod -R +x $HOME/ps4tc/bin/linux
           echo "OO_PS4_TOOLCHAIN=$HOME/ps4tc" >> $GITHUB_ENV
 
+      - name: Add musl libc headers to toolchain (same as official toolchain CI)
+        run: |
+          git clone --depth 1 https://github.com/OpenOrbis/musl.git $HOME/musl
+          if [ ! -d "$HOME/musl/ps4/include" ]; then
+            echo "Нет папки ps4/include в musl. Содержимое репозитория:"
+            ls -la $HOME/musl
+            exit 1
+          fi
+          cp -r $HOME/musl/ps4/include/* $HOME/ps4tc/include/
+          ls $HOME/ps4tc/include | head -50
+
       - name: Show toolchain tools
         run: |
           ls -la $HOME/ps4tc/bin/linux

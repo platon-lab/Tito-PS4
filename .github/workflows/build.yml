@@ -10,50 +10,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install tools
+      - name: Prepare icon 512x512 (on runner)
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang lld make python3 zip imagemagick
+          sudo apt-get install -y imagemagick
+          convert Tito.png -background white -flatten -resize 512x512 -gravity center -extent 512x512 icon512.png
 
-      - name: Install .NET (for PkgTool)
-        uses: actions/setup-dotnet@v4
+      - name: Build eboot.bin (official OpenOrbis toolchain in Docker)
+        uses: OpenOrbis/toolchain-action@main
         with:
-          dotnet-version: |
-            3.1.x
-            6.0.x
-            8.0.x
-
-      - name: Clone OpenOrbis toolchain (prebuilt, no build needed)
-        run: |
-          git clone --depth 1 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/ps4tc
-          chmod -R +x $HOME/ps4tc/bin/linux
-          echo "OO_PS4_TOOLCHAIN=$HOME/ps4tc" >> $GITHUB_ENV
-
-      - name: Add musl libc headers to toolchain (same as official toolchain CI)
-        run: |
-          git clone --depth 1 https://github.com/OpenOrbis/musl.git $HOME/musl
-          if [ ! -d "$HOME/musl/ps4/include" ]; then
-            echo "Нет папки ps4/include в musl. Содержимое репозитория:"
-            ls -la $HOME/musl
-            exit 1
-          fi
-          cp -r $HOME/musl/ps4/include/* $HOME/ps4tc/include/
-          ls $HOME/ps4tc/include | head -50
-
-      - name: Show toolchain tools
-        run: |
-          ls -la $HOME/ps4tc/bin/linux
-          ls -la $HOME/ps4tc/lib | head -80
-
-      - name: Build eboot.bin
-        run: make eboot.bin
-
-      - name: Prepare icon (512x512)
-        run: convert Tito.png -background white -flatten -resize 512x512 -gravity center -extent 512x512 icon512.png
+          version: v0.5.1
+          command: make eboot.bin
 
       - name: Build PKG
         continue-on-error: true
-        run: make pkg
+        uses: OpenOrbis/toolchain-action@main
+        with:
+          version: v0.5.1
+          command: make pkg
 
       - name: Upload results
         if: always()

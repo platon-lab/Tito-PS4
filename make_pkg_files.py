@@ -60,6 +60,8 @@ def sfo_bytes(entries):
 
 
 def find_in_toolchain(name):
+    if os.path.isfile(name):
+        return name
     tc = os.environ.get("OO_PS4_TOOLCHAIN", "")
     if not tc:
         raise SystemExit("OO_PS4_TOOLCHAIN не задан")

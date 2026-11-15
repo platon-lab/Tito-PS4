@@ -22,7 +22,6 @@ eboot.bin: tito.elf
 	test -s eboot.bin
 
 pkg: eboot.bin
-	python3 make_pkg_files.py
 	$(PKGTOOL) pkg_build pkg/pkg.gp4 .
 
 clean:

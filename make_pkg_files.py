@@ -77,6 +77,7 @@ GP4 = """<?xml version="1.0" encoding="UTF-8"?>
 <volume_type>pkg_ps4_app</volume_type>
 <volume_id>PS4VOLUME</volume_id>
 <volume_ver>0001</volume_ver>
+<volume_ts>2026-11-15 00:00:00</volume_ts>
 <system_ver>0000</system_ver>
 <package content_id="{cid}" passcode="00000000000000000000000000000000"/>
 </volume>

@@ -51,7 +51,7 @@ jobs:
           # param.sfo и gp4 — шаги уточним по логу предыдущего шага (Locate toolchain)
 
       - name: Create PKG
-        run: echo "PKG step: уточним после логов"
+        run: echo "PKG step - уточним после логов"
 
       - uses: actions/upload-artifact@v4
         with:

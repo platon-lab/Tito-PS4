@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Создаёт pkg/ с param.sfo, icon0.png, eboot.bin и gp4-проектом.
+# Создаёт pkg/ с param.sfo, icon0.png, eboot.bin, системными модулями и gp4-проектом.
 import os
 import shutil
 import struct
@@ -21,6 +21,30 @@ ENTRIES = {
     "APP_VER":    ("str", VERSION, 0x08),
     "ATTRIBUTE":  ("int", 0, 4),
 }
+
+# Модули, которые PS4 ждёт рядом с eboot.bin
+REQUIRED_MODULES = ["libc.prx", "libSceFios2.prx"]
+# Необязательный файл из тулчейна: если найден, кладём в sce_sys/about
+OPTIONAL_ABOUT = "right.sprx"
+
+
+def find_file(name):
+    """Ищем файл в рабочей папке (его туда кладёт CI), потом в OO_PS4_TOOLCHAIN."""
+    if os.path.isfile(name):
+        return name
+    tc = os.environ.get("OO_PS4_TOOLCHAIN", "")
+    if tc:
+        for root, _dirs, files in os.walk(tc):
+            if name in files:
+                return os.path.join(root, name)
+    return None
+
+
+def find_required(name):
+    path = find_file(name)
+    if path is None:
+        raise SystemExit(f"Не нашёл {name} (ни в рабочей папке, ни в тулчейне)")
+    return path
 
 
 def sfo_bytes(entries):
@@ -59,19 +83,11 @@ def sfo_bytes(entries):
     return header + bytes(index) + bytes(key_table) + bytes(data_table)
 
 
-def find_in_toolchain(name):
-    if os.path.isfile(name):
-        return name
-    tc = os.environ.get("OO_PS4_TOOLCHAIN", "")
-    if not tc:
-        raise SystemExit("OO_PS4_TOOLCHAIN не задан")
-    for root, _dirs, files in os.walk(tc):
-        if name in files:
-            return os.path.join(root, name)
-    raise SystemExit(f"Не нашёл {name} внутри {tc}")
-
-
-GP4 = """<?xml version="1.0" encoding="UTF-8"?>
+def gp4_xml(files):
+    file_lines = "\n".join(
+        f'<file targ_path="{p}" orig_path="{p}" />' for p in files
+    )
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
 <psproject fmt="gp4" version="1000">
 <volume>
 <volume_type>pkg_ps4_app</volume_type>
@@ -79,17 +95,15 @@ GP4 = """<?xml version="1.0" encoding="UTF-8"?>
 <volume_ver>0001</volume_ver>
 <volume_ts>2026-11-15 00:00:00</volume_ts>
 <system_ver>0000</system_ver>
-<package content_id="{cid}" passcode="00000000000000000000000000000000"/>
+<package content_id="{CONTENT_ID}" passcode="00000000000000000000000000000000"/>
 </volume>
 <files img_no="0">
-<file targ_path="sce_sys/param.sfo" orig_path="sce_sys/param.sfo" />
-<file targ_path="sce_sys/icon0.png" orig_path="sce_sys/icon0.png" />
-<file targ_path="eboot.bin" orig_path="eboot.bin" />
-<file targ_path="sce_module/libc.prx" orig_path="sce_module/libc.prx" />
-<file targ_path="sce_module/libSceFios2.prx" orig_path="sce_module/libSceFios2.prx" />
+{file_lines}
 </files>
 <rootdir>
-<dir targ_name="sce_sys"/>
+<dir targ_name="sce_sys">
+<dir targ_name="about"/>
+</dir>
 <dir targ_name="sce_module"/>
 </rootdir>
 </psproject>
@@ -98,15 +112,31 @@ GP4 = """<?xml version="1.0" encoding="UTF-8"?>
 
 def main():
     os.makedirs(SCE, exist_ok=True)
+    about = os.path.join(SCE, "about")
+    os.makedirs(about, exist_ok=True)
+    os.makedirs(os.path.join(PKG, "sce_module"), exist_ok=True)
+
     with open(os.path.join(SCE, "param.sfo"), "wb") as f:
         f.write(sfo_bytes(ENTRIES))
     shutil.copy("icon512.png", os.path.join(SCE, "icon0.png"))
     shutil.copy("eboot.bin", os.path.join(PKG, "eboot.bin"))
-    os.makedirs(os.path.join(PKG, "sce_module"), exist_ok=True)
-    for prx in ("libc.prx", "libSceFios2.prx"):
-        shutil.copy(find_in_toolchain(prx), os.path.join(PKG, "sce_module", prx))
+
+    files = ["sce_sys/param.sfo", "sce_sys/icon0.png", "eboot.bin"]
+
+    for prx in REQUIRED_MODULES:
+        shutil.copy(find_required(prx), os.path.join(PKG, "sce_module", prx))
+        files.append(f"sce_module/{prx}")
+
+    right = find_file(OPTIONAL_ABOUT)
+    if right:
+        shutil.copy(right, os.path.join(about, OPTIONAL_ABOUT))
+        files.append(f"sce_sys/about/{OPTIONAL_ABOUT}")
+        print(f"added {OPTIONAL_ABOUT}")
+    else:
+        print(f"WARNING: {OPTIONAL_ABOUT} not found, skipped")
+
     with open(os.path.join(PKG, "pkg.gp4"), "w", encoding="utf-8") as f:
-        f.write(GP4.format(cid=CONTENT_ID))
+        f.write(gp4_xml(files))
     print("pkg/ prepared")
 
 

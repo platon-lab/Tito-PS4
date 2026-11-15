@@ -25,7 +25,15 @@ jobs:
             openorbisofficial/toolchain:latest \
             bash -c "make eboot.bin"
 
-      - name: Build PKG
+      - name: Prepare PKG files (python runs on runner, toolchain modules copied from image)
+        run: |
+          docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
+            openorbisofficial/toolchain:latest \
+            bash -c 'for p in libc.prx libSceFios2.prx; do f=$(find /lib/OpenOrbisSDK -name "$p" | head -n1); echo "found $p: $f"; cp "$f" /workspace/; done'
+          python3 make_pkg_files.py
+          ls -la pkg pkg/sce_sys pkg/sce_module
+
+      - name: Build PKG (PkgTool in container)
         continue-on-error: true
         run: |
           docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \

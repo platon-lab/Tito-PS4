@@ -20,6 +20,9 @@ ENTRIES = {
     "VERSION":    ("str", VERSION, 0x08),
     "APP_VER":    ("str", VERSION, 0x08),
     "ATTRIBUTE":  ("int", 0, 4),
+    "APP_TYPE":   ("int", 1, 4),        # 1 = полноценное приложение
+    "PARENTAL_LEVEL": ("int", 1, 4),
+    "SYSTEM_VER": ("int", 0, 4),
 }
 
 # Модули, которые PS4 ждёт рядом с eboot.bin

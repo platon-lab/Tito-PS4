@@ -18,7 +18,13 @@ tito.elf: $(OBJS)
 
 eboot.bin: tito.elf
 	$(if $(EBOOT_TOOL),,$(error create-eboot не найден в $(TC)))
-	$(EBOOT_TOOL) -in tito.elf -out eboot.bin
+	@echo '=== create-eboot help ==='
+	-$(EBOOT_TOOL) -h 2>&1 | head -n 60
+	@echo '=== ELF headers ==='
+	-readelf -h -l -S tito.elf 2>&1 | head -n 120
+	@echo '=== ELF size ==='
+	-ls -l tito.elf
+	$(EBOOT_TOOL) -in tito.elf -out eboot.bin -paid 0x3800000000000011
 
 pkg: eboot.bin
 	python3 make_pkg_files.py

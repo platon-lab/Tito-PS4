@@ -5,7 +5,7 @@ CC := clang
 LD := ld.lld
 CFLAGS := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -fno-builtin -c -isysroot $(TC) -isystem $(TC)/include
 LDFLAGS := -m elf_x86_64 -pie --script $(TC)/link.x --eh-frame-hdr -L$(TC)/lib
-LIBS := -lkernel -lSceUserService -lScePad -lSceSysmodule
+LIBS := -lc -lkernel -lSceUserService -lScePad -lSceSysmodule
 OBJS := main.o
 
 all: eboot.bin

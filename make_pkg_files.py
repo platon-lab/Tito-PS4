@@ -59,6 +59,16 @@ def sfo_bytes(entries):
     return header + bytes(index) + bytes(key_table) + bytes(data_table)
 
 
+def find_in_toolchain(name):
+    tc = os.environ.get("OO_PS4_TOOLCHAIN", "")
+    if not tc:
+        raise SystemExit("OO_PS4_TOOLCHAIN не задан")
+    for root, _dirs, files in os.walk(tc):
+        if name in files:
+            return os.path.join(root, name)
+    raise SystemExit(f"Не нашёл {name} внутри {tc}")
+
+
 GP4 = """<?xml version="1.0" encoding="UTF-8"?>
 <psproject fmt="gp4" version="1000">
 <volume>
@@ -72,9 +82,12 @@ GP4 = """<?xml version="1.0" encoding="UTF-8"?>
 <file targ_path="sce_sys/param.sfo" orig_path="sce_sys/param.sfo" />
 <file targ_path="sce_sys/icon0.png" orig_path="sce_sys/icon0.png" />
 <file targ_path="eboot.bin" orig_path="eboot.bin" />
+<file targ_path="sce_module/libc.prx" orig_path="sce_module/libc.prx" />
+<file targ_path="sce_module/libSceFios2.prx" orig_path="sce_module/libSceFios2.prx" />
 </files>
 <rootdir>
 <dir targ_name="sce_sys"/>
+<dir targ_name="sce_module"/>
 </rootdir>
 </psproject>
 """
@@ -86,6 +99,9 @@ def main():
         f.write(sfo_bytes(ENTRIES))
     shutil.copy("icon512.png", os.path.join(SCE, "icon0.png"))
     shutil.copy("eboot.bin", os.path.join(PKG, "eboot.bin"))
+    os.makedirs(os.path.join(PKG, "sce_module"), exist_ok=True)
+    for prx in ("libc.prx", "libSceFios2.prx"):
+        shutil.copy(find_in_toolchain(prx), os.path.join(PKG, "sce_module", prx))
     with open(os.path.join(PKG, "pkg.gp4"), "w", encoding="utf-8") as f:
         f.write(GP4.format(cid=CONTENT_ID))
     print("pkg/ prepared")

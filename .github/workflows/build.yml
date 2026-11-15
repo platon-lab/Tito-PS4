@@ -13,33 +13,21 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang lld make cmake ninja-build git python3 zip
+          sudo apt-get install -y clang lld make git python3 zip
 
-      - name: Clone OpenOrbis toolchain
-        run: git clone --recursive https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/ps4tc
+      - name: Clone OpenOrbis toolchain (prebuilt tools in bin/linux, no build needed)
+        run: git clone --depth 1 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/ps4tc
 
-      - name: Build OpenOrbis toolchain
+      - name: Make toolchain binaries executable
         run: |
-          cd $HOME/ps4tc
-          echo "== repo root =="
-          ls -la
-          if [ -f CMakeLists.txt ]; then
-            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-            cmake --build build
-          elif [ -f Makefile ] || [ -f makefile ]; then
-            make -j$(nproc)
-          else
-            echo "Не нашёл CMakeLists.txt и Makefile. Вот README тулчейна:"
-            cat README.md || true
-            exit 1
-          fi
+          chmod -R +x $HOME/ps4tc/bin/linux
+          echo "OO_PS4_TOOLCHAIN=$HOME/ps4tc" >> $GITHUB_ENV
+          echo "$HOME/ps4tc/bin/linux" >> $GITHUB_PATH
 
-      - name: Locate toolchain
+      - name: Show toolchain contents (for debugging)
         run: |
-          TC=$HOME/ps4tc
-          echo "== toolchain tools =="
-          find $TC -maxdepth 4 -type f -perm -u+x \( -name 'orbis-clang*' -o -name 'create-gp4*' -o -name 'pkg*' -o -name 'create-fself*' \) | head -50
-          echo "OO_PS4_TOOLCHAIN=$TC" >> $GITHUB_ENV
+          ls -la $HOME/ps4tc
+          ls -la $HOME/ps4tc/bin/linux || true
 
       - name: Build ELF
         run: make
@@ -48,7 +36,6 @@ jobs:
         run: |
           mkdir -p sce_sys
           cp Tito.png sce_sys/icon0.png
-          # param.sfo и gp4 — шаги уточним по логу предыдущего шага (Locate toolchain)
 
       - name: Create PKG
         run: echo "PKG step - уточним после логов"

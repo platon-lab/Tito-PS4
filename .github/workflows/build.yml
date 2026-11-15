@@ -21,14 +21,14 @@ jobs:
 
       - name: Build eboot.bin (OpenOrbis toolchain in Docker)
         run: |
-          docker run --rm -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
+          docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
             openorbisofficial/toolchain:latest \
             bash -c "make eboot.bin"
 
       - name: Build PKG
         continue-on-error: true
         run: |
-          docker run --rm -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
+          docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
             openorbisofficial/toolchain:latest \
             bash -c "make pkg"
 

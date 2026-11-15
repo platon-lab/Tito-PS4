@@ -46,12 +46,12 @@ int main(void) {
 
         if (pressed & BTN_CROSS) {
             OrbisPadVibeParam vib;
-            vib.largeMotor = 255;
-            vib.smallMotor = 128;
+            vib.lgMotor = 255;
+            vib.smMotor = 128;
             scePadSetVibration(pad, &vib);
             sceKernelUsleep(300000);
-            vib.largeMotor = 0;
-            vib.smallMotor = 0;
+            vib.lgMotor = 0;
+            vib.smMotor = 0;
             scePadSetVibration(pad, &vib);
         }
 

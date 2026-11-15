@@ -40,6 +40,13 @@ jobs:
             openorbisofficial/toolchain:latest \
             bash -c "make pkg"
 
+      - name: Validate and list PKG contents (diagnostics)
+        if: always()
+        run: |
+          docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
+            openorbisofficial/toolchain:latest \
+            bash -c 'for p in *.pkg; do [ -f "$p" ] || continue; echo "=== validate $p"; PkgTool.Core pkg_validate --verbose "$p" || true; echo "=== entries $p"; PkgTool.Core pkg_listentries "$p" || true; done; [ -f *.pkg ] || echo "no .pkg produced"'
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4

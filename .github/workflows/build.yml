@@ -16,18 +16,21 @@ jobs:
           sudo apt-get install -y imagemagick
           convert Tito.png -background white -flatten -resize 512x512 -gravity center -extent 512x512 icon512.png
 
-      - name: Build eboot.bin (official OpenOrbis toolchain in Docker)
-        uses: OpenOrbis/toolchain-action@main
-        with:
-          version: v0.5.1
-          command: make eboot.bin
+      - name: Pull OpenOrbis toolchain image
+        run: docker pull openorbisofficial/toolchain:latest
+
+      - name: Build eboot.bin (OpenOrbis toolchain in Docker)
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
+            openorbisofficial/toolchain:latest \
+            bash -c "make eboot.bin"
 
       - name: Build PKG
         continue-on-error: true
-        uses: OpenOrbis/toolchain-action@main
-        with:
-          version: v0.5.1
-          command: make pkg
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
+            openorbisofficial/toolchain:latest \
+            bash -c "make pkg"
 
       - name: Upload results
         if: always()

@@ -1,4 +1,4 @@
-name: Build TITO PKG
+name: Build TITO THEME PKG
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare icon 512x512 (on runner)
+      - name: Prepare theme images (on runner)
         run: |
           sudo apt-get update
           sudo apt-get install -y imagemagick
@@ -18,29 +18,17 @@ jobs:
           convert Tito.png -background "#202030" -flatten -resize x900 -gravity center -extent 1920x1080 pic0.png
           cp pic0.png pic1.png
 
+      - name: Prepare theme project (python on runner)
+        run: python3 make_theme_files.py
+
       - name: Pull OpenOrbis toolchain image
         run: docker pull openorbisofficial/toolchain:latest
 
-      - name: Build eboot.bin (OpenOrbis toolchain in Docker)
+      - name: Build theme PKG (PkgTool in container)
         run: |
           docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
             openorbisofficial/toolchain:latest \
-            bash -c "make eboot.bin"
-
-      - name: Prepare PKG files (python runs on runner, toolchain modules copied from image)
-        run: |
-          docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
-            openorbisofficial/toolchain:latest \
-            bash -c 'for p in libc.prx libSceFios2.prx right.sprx; do f=$(find /lib/OpenOrbisSDK -name "$p" | head -n1); if [ -n "$f" ]; then echo "found $p: $f"; cp "$f" /workspace/; else echo "not found: $p"; fi; done'
-          python3 make_pkg_files.py
-          ls -la pkg pkg/sce_sys pkg/sce_module
-
-      - name: Build PKG (PkgTool in container)
-        continue-on-error: true
-        run: |
-          docker run --rm --user root -v "$GITHUB_WORKSPACE":/workspace -w /workspace \
-            openorbisofficial/toolchain:latest \
-            bash -c "make pkg"
+            bash -c "PkgTool.Core pkg_build pkg/pkg.gp4 ."
 
       - name: Validate and list PKG contents (diagnostics)
         if: always()
@@ -49,14 +37,12 @@ jobs:
             openorbisofficial/toolchain:latest \
             bash -c 'for p in *.pkg; do [ -f "$p" ] || continue; echo "=== validate $p"; PkgTool.Core pkg_validate --verbose "$p" || true; echo "=== entries $p"; PkgTool.Core pkg_listentries "$p" || true; done; [ -f *.pkg ] || echo "no .pkg produced"'
 
-      - name: Upload results
+      - name: Upload theme
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tito-build-output
+          name: tito-theme
           path: |
-            eboot.bin
-            tito.elf
-            pkg/**
             *.pkg
+            pkg/**
           if-no-files-found: warn

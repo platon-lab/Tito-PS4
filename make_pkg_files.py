@@ -122,9 +122,11 @@ def main():
     with open(os.path.join(SCE, "param.sfo"), "wb") as f:
         f.write(sfo_bytes(ENTRIES))
     shutil.copy("icon512.png", os.path.join(SCE, "icon0.png"))
+    shutil.copy("pic0.png", os.path.join(SCE, "pic0.png"))
+    shutil.copy("pic1.png", os.path.join(SCE, "pic1.png"))
     shutil.copy("eboot.bin", os.path.join(PKG, "eboot.bin"))
 
-    files = ["sce_sys/param.sfo", "sce_sys/icon0.png", "eboot.bin"]
+    files = ["sce_sys/param.sfo", "sce_sys/icon0.png", "sce_sys/pic0.png", "sce_sys/pic1.png", "eboot.bin"]
 
     for prx in REQUIRED_MODULES:
         shutil.copy(find_required(prx), os.path.join(PKG, "sce_module", prx))

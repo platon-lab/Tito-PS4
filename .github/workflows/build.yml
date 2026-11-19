@@ -32,10 +32,9 @@ jobs:
           # иконка 512x512: тёмный градиент + Тито по центру
           convert -size 512x512 gradient:"#0d0d1a-#2a1f4a" \
             \( dog.png -resize 420x420 \) -gravity center -composite icon512.png
-          # фон 1920x1080 с Тито справа и подписью
+          # фон 1920x1080 с Тито справа (без надписи, чтобы не зависеть от шрифтов)
           convert -size 1920x1080 gradient:"#0d0d1a-#1b1040" \
             \( dog.png -resize x980 \) -gravity east -geometry +120+0 -composite \
-            -gravity southwest -fill "#c9a8ff" -pointsize 96 -annotate +80+60 "TITO" \
             pic0.png
           # второй фон: зеркальный градиент, Тито слева
           convert -size 1920x1080 gradient:"#1b1040-#0d0d1a" \

@@ -14,9 +14,20 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y imagemagick
-          convert Tito.png -background white -flatten -resize 512x512 -gravity center -extent 512x512 icon512.png
-          convert Tito.png -background "#202030" -flatten -resize x900 -gravity center -extent 1920x1080 pic0.png
-          cp pic0.png pic1.png
+          # убираем белый фон у собаки
+          convert tito.png -fuzz 12% -transparent white dog.png
+          # иконка 512x512: тёмный градиент + Тито по центру
+          convert -size 512x512 gradient:"#0d0d1a-#2a1f4a" \
+            \( dog.png -resize 420x420 \) -gravity center -composite icon512.png
+          # фон 1920x1080 с Тито справа
+          convert -size 1920x1080 gradient:"#0d0d1a-#1b1040" \
+            \( dog.png -resize x980 \) -gravity east -geometry +120+0 -composite \
+            -gravity southwest -fill "#c9a8ff" -pointsize 96 -annotate +80+60 "TITO" \
+            pic0.png
+          # второй фон: зеркальный градиент, без текста
+          convert -size 1920x1080 gradient:"#1b1040-#0d0d1a" \
+            \( dog.png -resize x900 \) -gravity west -geometry +160+60 -composite \
+            pic1.png
 
       - name: Prepare theme project (python on runner)
         run: python3 make_theme_files.py

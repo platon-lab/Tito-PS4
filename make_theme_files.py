@@ -25,8 +25,6 @@ ENTRIES = {
     "SYSTEM_VER": ("int", 0, 4),
 }
 
-IMAGES = ["icon512.png", "pic0.png", "pic1.png"]
-
 
 def sfo_bytes(entries):
     keys = sorted(entries)

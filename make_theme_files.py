@@ -21,6 +21,7 @@ ENTRIES = {
     "TITLE_ID":   ("str", TITLE_ID, 0x10),
     "VERSION":    ("str", VERSION, 0x08),
     "APP_VER":    ("str", VERSION, 0x08),
+    "FORMAT":     ("str", "obs", 4),
     "ATTRIBUTE":  ("int", 0, 4),
     "SYSTEM_VER": ("int", 0, 4),
 }

@@ -10,21 +10,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Find source image
+        run: |
+          # ищем tito.png в любом регистре (Tito.png, TITO.PNG и т.п.)
+          SRC=$(find . -maxdepth 2 -type f -iname 'tito.png' -not -path './.git/*' | head -n1)
+          if [ -z "$SRC" ]; then
+            echo "ОШИБКА: tito.png не найден в репозитории."
+            echo "Файлы в корне репозитория:"
+            ls -la
+            exit 1
+          fi
+          echo "Нашёл картинку: $SRC"
+          cp "$SRC" source.png
+
       - name: Prepare theme images (on runner)
         run: |
           sudo apt-get update
           sudo apt-get install -y imagemagick
           # убираем белый фон у собаки
-          convert tito.png -fuzz 12% -transparent white dog.png
+          convert source.png -fuzz 12% -transparent white dog.png
           # иконка 512x512: тёмный градиент + Тито по центру
           convert -size 512x512 gradient:"#0d0d1a-#2a1f4a" \
             \( dog.png -resize 420x420 \) -gravity center -composite icon512.png
-          # фон 1920x1080 с Тито справа
+          # фон 1920x1080 с Тито справа и подписью
           convert -size 1920x1080 gradient:"#0d0d1a-#1b1040" \
             \( dog.png -resize x980 \) -gravity east -geometry +120+0 -composite \
             -gravity southwest -fill "#c9a8ff" -pointsize 96 -annotate +80+60 "TITO" \
             pic0.png
-          # второй фон: зеркальный градиент, без текста
+          # второй фон: зеркальный градиент, Тито слева
           convert -size 1920x1080 gradient:"#1b1040-#0d0d1a" \
             \( dog.png -resize x900 \) -gravity west -geometry +160+60 -composite \
             pic1.png

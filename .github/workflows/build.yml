@@ -15,6 +15,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y imagemagick
           convert Tito.png -background white -flatten -resize 512x512 -gravity center -extent 512x512 icon512.png
+          convert Tito.png -background "#202030" -flatten -resize x900 -gravity center -extent 1920x1080 pic0.png
+          cp pic0.png pic1.png
 
       - name: Pull OpenOrbis toolchain image
         run: docker pull openorbisofficial/toolchain:latest
